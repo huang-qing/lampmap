@@ -1,0 +1,31 @@
+{
+  "name": "lampmap",
+  "version": "1.0.0",
+  "description": "灯图",
+  "main": "index.js",
+  "directories": {
+    "lib": "lib"
+  },
+  "dependencies": {
+    "eslint": "^5.9.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/huang-qing/lampmap.git"
+  },
+  "keywords": [
+    "灯图",
+    "项目计划",
+    "project"
+  ],
+  "author": "huangqing",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/huang-qing/lampmap/issues"
+  },
+  "homepage": "https://github.com/huang-qing/lampmap#readme"
+}
