@@ -94,7 +94,7 @@
                 arrow: {
                     default: {
                         fill: '#1E1E1E',
-                        'stroke-width':1,
+                        'stroke-width': 1,
                         stroke: '#1e1e1e'
                     }
                 },
@@ -111,12 +111,12 @@
                 },
                 event: {
                     click: function (e, item) {
-                        console.log('click');
-                        console.dir(item);
+                        // console.log('click');
+                        // console.dir(item);
                     },
                     dbclick: function (e, item) {
-                        console.log('dbclick');
-                        console.dir(item);
+                        // console.log('dbclick');
+                        // console.dir(item);
                     }
                 }
             }
