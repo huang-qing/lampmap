@@ -40,7 +40,7 @@
                     normal: {
                         fill: '#2ED756'
                     },
-                    alert: {
+                    alter: {
                         fill: '#F5DE19',
                         light: true
                     },
@@ -70,7 +70,7 @@
                     normal: {
                         fill: '#1E1E1E'
                     },
-                    alert: {
+                    alter: {
                         fill: '#1E1E1E'
                     },
                     delay: {
@@ -100,7 +100,7 @@
                 },
                 fieldMap: {
                     normal: 'normal',
-                    alert: 'alert',
+                    alter: 'alter',
                     delay: 'delay',
                     delayFinished: 'delayFinished',
                     normalFinished: 'normalFinished'
@@ -111,11 +111,11 @@
                 },
                 event: {
                     click: function (e, item) {
-                        // console.log('click');
+                        //console.log('click');
                         // console.dir(item);
                     },
                     dbclick: function (e, item) {
-                        // console.log('dbclick');
+                        //console.log('dbclick');
                         // console.dir(item);
                     }
                 }
@@ -290,13 +290,16 @@
             if (self.clickType === null) {
                 self.clickType = 'click';
                 setTimeout(function () {
-                    if (self.clickType === 'click') {
+                    var type = self.clickType;
+                    self.clickType = null;
+
+                    if (type === 'click') {
                         self.bindNodeClick(e, node, item);
                     }
                     else {
                         self.bindNodeDbClick(e, node, item);
                     }
-                    self.clickType = null;
+
                 }, 250);
             } else if (self.clickType === 'click') {
                 self.clickType = 'dbclick';

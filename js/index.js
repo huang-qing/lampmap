@@ -43,7 +43,7 @@ $(function () {
                     {
                         id: '21',
                         text: '21',
-                        state: 'alert',
+                        state: 'alter',
                         children: [
                             {
                                 id: '30',
@@ -53,19 +53,19 @@ $(function () {
                             {
                                 id: '31',
                                 text: '31',
-                                state: 'alert'
+                                state: 'alter'
                             },
                             {
                                 id: '32',
                                 text: '32',
-                                state: 'alert'
+                                state: 'alter'
                             }
                         ]
                     },
                     {
                         id: '22',
                         text: '22',
-                        state: 'alert'
+                        state: 'alter'
                     }
                 ]
             },
@@ -77,12 +77,12 @@ $(function () {
             {
                 id: '8',
                 text: '8',
-                state: 'alert'
+                state: 'alter'
             },
             {
                 id: '9',
                 text: '9',
-                state: 'alert'
+                state: 'alter'
             },
             {
                 id: '10',
