@@ -28,7 +28,7 @@
                 },
                 offset: {
                     x: 80,
-                    y: 80
+                    y: 30
                 },
                 node: {
                     default: {
@@ -58,7 +58,7 @@
                         'stroke-dasharray': 0
                     },
                     close: {
-                        'stroke-dasharray': [8, 2]
+                        'stroke-dasharray': [8, 3]
                     }
                 },
                 text: {
@@ -124,10 +124,13 @@
 
         this.options = $.extend(true, {}, _options, options);
         this.container = $(this.options.container);
-        this.data = this.options.data;
+        this._data = this.options.data;
+        this.data = this._data.concat();
+        this.hash = {};
         this.config = this.options.config;
-        this.paper;
         this.clickType = null;
+        this.enableFlashLight = false;
+        this.paper;
     }
 
     LampMap.prototype.load = function (data) {
@@ -156,6 +159,11 @@
         this.resize();
     };
 
+    LampMap.prototype.clear = function () {
+        this.paper.clear();
+        this.hash = {};
+    };
+
     LampMap.prototype.renderArrow = function () {
         var arrow;
 
@@ -170,45 +178,124 @@
     LampMap.prototype.renderMap = function (data, x, y, parentNode) {
         var x1 = x,
             y1 = y,
+            x2,
+            y2,
             item,
-            offsetX,
+            offsetX = this.config.offset.x + this.config.node.default.r,
+            offsetY = this.config.offset.y + this.config.node.default.r,
             node,
             prevNode,
+            prevNodeBbox,
             subNode,
-            list = [];
+            subNodeBbox,
+            nextItems,
+            list = [],
+            path = [],
+            parentId,
+            index,
+            preposeNode,
+            preposeItem;
 
 
         for (var i = 0, len = data.length; i < len; i++) {
             item = data[i];
-            offsetX = (this.config.offset.x + this.config.node.default.r) * i;
-            x1 = x + offsetX;
+            //前置节点未显示或在折叠状态
+            preposeItem = this.hash[item.prepose];
+            if (item.prepose && !preposeItem) {
+                continue;
+            }
+            if (typeof item.expand === 'undefined') {
+                item.expand = true;
+            }
 
+            if (item.nextItems) {
+                item.nextItems = [];
+            }
+
+            this.hash[item.id] = item;
+            path.push(i + 1);
+            y1 = y;
+            //上一个兄弟节点存在子节点
+            if (subNode) {
+                subNodeBbox = subNode.getBBox();
+                y1 = subNodeBbox.y + subNodeBbox.height + offsetY;
+            } else if (prevNode) {
+                prevNodeBbox = prevNode.getBBox();
+                y1 = prevNodeBbox.cy + prevNodeBbox.r1 + offsetY;
+            }
+            //绘制当前节点
+            item.x = x1;
+            item.y = y1;
             node = this.renderNode(x1, y1, item.id, item.text, item.state || '');
-            this.bindNodeEvent(node, item);
+            //记录当前节点相关信息
+            index = path.join('-');
+            node.attr({
+                'data-index': index,
+                'data-expand': item.expand
+            });
+            item.index = index;
+            //当前节点折叠状态
+            if (!item.expand) {
+                node.attr(this.config.node.close);
+            }
 
-            if (i === 0 && parentNode) {
-                list.push(this.renderBrokenLine(parentNode, node));
+            if (parentNode) {
+                parentId = parentNode.attr('id');
+                node.attr({
+                    'data-parentId': parentId
+                });
+                item.parentId = parentId;
             }
-            else if (prevNode) {
-                list.push(this.renderStraightLine(prevNode, node));
-            }
+
             prevNode = node;
 
-            if (item.children && item.children.length > 0) {
-                offsetX = (this.config.offset.x + this.config.node.default.r) * (i + 1) - this.config.offset.x / 2;
-                subNode = this.renderMap(item.children, x + offsetX, y1 + this.config.offset.y, node);
+            //绘制连线
+            if (preposeItem) {
+                if (!preposeItem.nextItems) {
+                    preposeItem.nextItems = [];
+                }
+                if (preposeItem.parentId === item.parentId && !preposeItem.expand) {
+                    nextItems = preposeItem.nextItems;
+                    if (nextItems.length === 0) {
+                        y2 = preposeItem.y;
+                    }
+                    else {
+                        y2 = nextItems[nextItems.length - 1].y + offsetY;
+                    }
+                    item.y = y2;
+                    this.translateYNode(node, y2);
+                    preposeItem.nextItems.push(item);
+                }
+
+                preposeNode = this.paper.select('[id="' + preposeItem.id + '"]');
+                x2 = preposeItem.x + offsetX;
+                item.x = x2;
+                this.translateXNode(node, x2);
+
+                list.push(this.renderBrokenLine(preposeNode, node, true));
+            } else if (parentNode) {
+                list.push(this.renderBrokenLine(parentNode, node));
+            }
+
+            this.bindNodeEvent(node, item);
+
+            //递归下级节点
+            if (item.children && item.children.length > 0 && item.expand) {
+                subNode = this.renderMap(item.children, x + offsetX, y1, node);
                 if (subNode) {
                     subNode.attr({ 'class': this.config.className.children });
-                    node.attr('data-hasSubNode', true);
+                    //node.attr('data-hasSubNode', true);
                     node = this.paper.g(node, subNode);
                 }
+            }
+            else {
+                subNode = null;
             }
 
             list.push(node);
         }
 
         return this.paper.g.apply(this.paper, list);
-
     };
 
     LampMap.prototype.renderNode = function (x, y, id, text, state) {
@@ -235,6 +322,16 @@
         return node;
     };
 
+    LampMap.prototype.translateXNode = function (node, x) {
+        node.select('circle').attr('cx', x);
+        node.select('text').attr('x', x);
+    };
+
+    LampMap.prototype.translateYNode = function (node, y) {
+        node.select('circle').attr('cy', y);
+        node.select('text').attr('y', y);
+    };
+
     LampMap.prototype.nodeAnimate = function (node, state) {
         var config = this.config.node[state] || {};
 
@@ -243,19 +340,39 @@
         }
     };
 
-    LampMap.prototype.renderStraightLine = function (fromNode, toNode) {
+    LampMap.prototype.renderBrokenLine = function (fromNode, toNode, hasArrow) {
         var fromBBox = fromNode.getBBox(),
-            toNodeBBox = toNode.getBBox(),
-            x1 = fromBBox.cx + fromBBox.r1,
-            y1 = fromBBox.cy,
-            x2 = toNodeBBox.cx - toNodeBBox.r1,
-            y2 = y1,
+            toBBox = toNode.getBBox(),
+            x1 = '',
+            y1 = '',
+            x2 = '',
+            y2 = '',
+            x3 = '',
+            y3 = '',
+            x4 = '',
+            y4 = '',
             path;
 
-        path = this.paper.path(['M', x1, ' ', y1, 'L', x2, ' ', y2].join(''))
+        x1 = fromBBox.cx + fromBBox.r1;
+        y1 = fromBBox.cy;
+
+        x2 = x1 + ((toBBox.cx - toBBox.r1) - (fromBBox.cx + fromBBox.r1)) / 2;
+        y2 = y1;
+
+        x3 = x2;
+        y3 = toBBox.cy;
+
+        x4 = toBBox.cx - toBBox.r1;
+        y4 = y3;
+
+        path = ['M', x1, ' ', y1, 'L', x2, ' ', y2, 'L', x3, ' ', y3, 'L', x4, ' ', y4].join('');
+
+        path = this.paper.path(path)
             .attr(this.config.line.default);
 
-        $(path.node).attr('marker-end', 'url(#arrow)');
+        if (hasArrow) {
+            $(path.node).attr('marker-end', 'url(#arrow)');
+        }
 
         return path;
     };
@@ -282,6 +399,29 @@
         }
 
         node.attr('data-expand', expand === 'open' ? 'close' : 'open');
+    };
+
+    LampMap.prototype.changeExpand = function (node) {
+        var id = node.attr('id'),
+            expand = node.attr('data-expand') === 'true' ? false : true,
+            item = this.hash[id],
+            hasSubNode = item.children && item.children.length;
+
+        if (!hasSubNode) {
+            return;
+        }
+
+        item.expand = expand;
+        node.attr('data-expand', expand);
+        if (expand) {
+            node.attr(this.config.node.open);
+        }
+        else {
+            node.attr(this.config.node.close);
+        }
+
+        this.clear();
+        this.render();
     };
 
     LampMap.prototype.bindNodeEvent = function (node, item) {
@@ -312,69 +452,17 @@
     };
 
     LampMap.prototype.bindNodeDbClick = function (e, node, item) {
-        this.renderExpand(node);
         this.config.event.dbclick.call(node, e, item);
-    };
-
-    LampMap.prototype.renderBrokenLine = function (fromNode, toNode) {
-        var fromBBox = fromNode.getBBox(),
-            toBBox = toNode.getBBox(),
-            x1 = fromBBox.cx,
-            y1 = fromBBox.cy,
-            x2 = '',
-            y2 = '',
-            x3 = '',
-            y3 = '',
-            x4 = toBBox.cx,
-            y4 = toBBox.cy,
-            path,
-            offsetY = this.config.offset.y;
-
-        if (y1 === y2) {
-            y1 = y1 - fromBBox.r;
-
-            x2 = x1;
-            y2 = y1 - offsetY;
-
-            x3 = x4;
-            y3 = y2;
-
-            y4 = y1;
-
-            path = ['M', x1, ' ', y1, 'L', x2, ' ', y2, 'L', x3, ' ', y3, 'L', x4, ' ', y4].join('');
-        }
-        else if (y1 < y4) {
-            y1 = y1 + fromBBox.r1;
-
-            x2 = x1;
-            y2 = y4;
-
-            x3 = x4 - toBBox.r1;
-            y3 = y4;
-
-            path = ['M', x1, ' ', y1, 'L', x2, ' ', y2, 'L', x3, ' ', y3].join('');
-        }
-        else if (y1 > y4) {
-            x1 = x1 + fromBBox.r1;
-
-            x2 = x4;
-            y2 = y1;
-
-            x3 = x4;
-            y3 = y4 - toBBox.r1;
-
-            path = ['M', x1, ' ', y1, 'L', x2, ' ', y2, 'L', x3, ' ', y3].join('');
-        }
-
-        path = this.paper.path(path)
-            .attr(this.config.line.default);
-        $(path.node).attr('marker-end', 'url(#arrow)');
-
-        return path;
+        this.changeExpand(node);
     };
 
     LampMap.prototype.flashLight = function (node, from, to) {
         var self = this;
+
+        if (!this.enableFlashLight) {
+            return;
+        }
+
         Snap.animate(from, to, function (val) {
             node.attr({
                 opacity: val
