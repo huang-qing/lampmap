@@ -129,7 +129,7 @@
         this.hash = {};
         this.config = this.options.config;
         this.clickType = null;
-        this.enableFlashLight = false;
+        this.enableFlashLight = true;
         this.paper;
     }
 
@@ -199,23 +199,22 @@
 
         for (var i = 0, len = data.length; i < len; i++) {
             item = data[i];
-            //前置节点未显示或在折叠状态
+            //前置节点未显示不渲染当前节点
             preposeItem = this.hash[item.prepose];
             if (item.prepose && !preposeItem) {
                 continue;
             }
+            //设置当前节点折叠状态
             if (typeof item.expand === 'undefined') {
                 item.expand = true;
             }
-
+            //初始化当前节点的后续任务
             if (item.nextItems) {
                 item.nextItems = [];
             }
 
-            this.hash[item.id] = item;
-            path.push(i + 1);
             y1 = y;
-            //上一个兄弟节点存在子节点
+            //判断上一个兄弟节点是否存在子节点，调整当前节点的位置
             if (subNode) {
                 subNodeBbox = subNode.getBBox();
                 y1 = subNodeBbox.y + subNodeBbox.height + offsetY;
@@ -224,16 +223,18 @@
                 y1 = prevNodeBbox.cy + prevNodeBbox.r1 + offsetY;
             }
             //绘制当前节点
-            item.x = x1;
-            item.y = y1;
             node = this.renderNode(x1, y1, item.id, item.text, item.state || '');
             //记录当前节点相关信息
+            item.x = x1;
+            item.y = y1;
+            item.index = index;
+            this.hash[item.id] = item;
+            path.push(i + 1);
             index = path.join('-');
             node.attr({
                 'data-index': index,
                 'data-expand': item.expand
             });
-            item.index = index;
             //当前节点折叠状态
             if (!item.expand) {
                 node.attr(this.config.node.close);
@@ -254,16 +255,19 @@
                 if (!preposeItem.nextItems) {
                     preposeItem.nextItems = [];
                 }
+                //前置任务是同级兄弟节点且为折叠状态Y位置计算
                 if (preposeItem.parentId === item.parentId && !preposeItem.expand) {
                     nextItems = preposeItem.nextItems;
+
                     if (nextItems.length === 0) {
                         y2 = preposeItem.y;
                     }
                     else {
                         y2 = nextItems[nextItems.length - 1].y + offsetY;
                     }
-                    item.y = y2;
                     this.translateYNode(node, y2);
+
+                    item.y = y2;
                     preposeItem.nextItems.push(item);
                 }
 
@@ -284,7 +288,6 @@
                 subNode = this.renderMap(item.children, x + offsetX, y1, node);
                 if (subNode) {
                     subNode.attr({ 'class': this.config.className.children });
-                    //node.attr('data-hasSubNode', true);
                     node = this.paper.g(node, subNode);
                 }
             }
