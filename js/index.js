@@ -10,153 +10,294 @@ $(function () {
                 text: '1',
                 state: 'normal',
                 children: [{
-                    id: '1-1',
-                    text: '1-1',
+                    id: '6',
+                    text: '6',
                     state: 'normal',
                     //expand: false,
                     children: [
                         {
-                            id: '1-1-1',
-                            text: '1-1-1',
+                            id: '7',
+                            text: '7',
                             state: 'normal'
                         },
                         {
-                            id: '1-1-2',
-                            text: '1-1-2',
+                            id: '8',
+                            text: '8',
                             state: 'alter',
                             children: [
                                 {
-                                    id: '1-1-2-1',
-                                    text: '1-1-2-1',
+                                    id: '31',
+                                    text: '31',
                                     state: 'normal'
                                 },
                                 {
-                                    id: '1-1-2-2',
-                                    text: '1-1-2-2',
+                                    id: '32',
+                                    text: '32',
                                     state: 'alter'
                                 },
                                 {
-                                    id: '1-1-2-3',
-                                    text: '1-1-2-3',
+                                    id: '33',
+                                    text: '33',
                                     state: 'alter'
                                 }
                             ]
                         },
                         {
-                            id: '1-1-3',
-                            text: '1-1-3',
+                            id: '9',
+                            text: '9',
                             state: 'alter',
-                            prepose: '1-1-2'
+                            prepose: '8'
                         },
                         {
-                            id: '1-1-4',
-                            text: '1-1-4',
+                            id: '10',
+                            text: '10',
                             state: 'alter',
-                            prepose: '1-1-2'
+                            prepose: '9'
                         },
                         {
-                            id: '1-1-5',
-                            text: '1-1-5',
+                            id: '11',
+                            text: '11',
                             state: 'alter'
                         }
                     ]
                 },
                 {
-                    id: '1-2',
-                    text: '1-2',
+                    id: '2',
+                    text: '2',
                     state: 'delay',
                 },
                 {
-                    id: '1-3',
-                    text: '1-3',
-                    state: 'delayFinished'
-                },
-                {
-                    id: '1-4',
-                    text: '1-4',
-                    state: 'normalFinished'
-                },
-                {
-                    id: '1-5',
-                    text: '1-5',
-                    state: 'normal',
+                    id: '3',
+                    text: '3',
+                    state: 'delayFinished',
                     children: [
                         {
-                            id: '1-5-1',
-                            text: '1-5-1',
-                            state: 'normal'
-                        },
-                        {
-                            id: '1-5-2',
-                            text: '1-5-2',
-                            state: 'alter',
+                            id: '20',
+                            text: '20',
+                            state: 'normal',
                             children: [
                                 {
-                                    id: '1-5-2-1',
-                                    text: '1-5-2-1',
+                                    id: '41',
+                                    text: '41',
                                     state: 'normal'
                                 },
                                 {
-                                    id: '1-5-2-2',
-                                    text: '1-5-2-2',
+                                    id: '42',
+                                    text: '42',
                                     state: 'alter',
-                                    prepose: '1-1-4'
+                                    prepose: '41'
                                 },
                                 {
-                                    id: '1-5-2-3',
-                                    text: '1-5-2-3',
+                                    id: '43',
+                                    text: '43',
                                     state: 'alter',
-                                    prepose: '1-1-4'
+                                    prepose: '42'
                                 }
                             ]
                         },
                         {
-                            id: '1-5-3',
-                            text: '1-5-3',
+                            id: '21',
+                            text: '21',
+                            state: 'alter',
+                            children: [
+                                {
+                                    id: '23',
+                                    text: '23',
+                                    state: 'normal'
+                                },
+                                {
+                                    id: '24',
+                                    text: '24',
+                                    state: 'alter',
+                                    prepose: '23'
+                                },
+                                {
+                                    id: '25',
+                                    text: '25',
+                                    state: 'alter',
+                                    prepose: '24'
+                                }
+                            ]
+                        },
+                        {
+                            id: '22',
+                            text: '22',
+                            state: 'alter'
+                        }
+                    ]
+
+                },
+                {
+                    id: '4',
+                    text: '4',
+                    state: 'normalFinished'
+                },
+                {
+                    id: '5',
+                    text: '5',
+                    state: 'normal',
+                    children: [
+                        {
+                            id: '12',
+                            text: '12',
+                            state: 'normal'
+                        },
+                        {
+                            id: '13',
+                            text: '13',
+                            state: 'alter',
+                            children: [
+                                {
+                                    id: '14',
+                                    text: '14',
+                                    state: 'normal'
+                                },
+                                {
+                                    id: '15',
+                                    text: '15',
+                                    state: 'alter',
+                                    prepose: '14'
+                                },
+                                {
+                                    id: '16',
+                                    text: '16',
+                                    state: 'alter',
+                                    prepose: '15'
+                                }
+                            ]
+                        },
+                        {
+                            id: '17',
+                            text: '17',
                             state: 'alter'
                         }
                     ]
                 }
-                    // {
-                    //     id: '7',
-                    //     text: '7',
-                    //     state: 'normal'
-                    // },
-                    // {
-                    //     id: '8',
-                    //     text: '8',
-                    //     state: 'alter'
-                    // },
-                    // {
-                    //     id: '9',
-                    //     text: '9',
-                    //     state: 'alter'
-                    // },
-                    // {
-                    //     id: '10',
-                    //     text: '10',
-                    //     state: 'normal'
-                    // },
-                    // {
-                    //     id: '11',
-                    //     text: '11',
-                    //     state: 'normal'
-                    // },
-                    // {
-                    //     id: '12',
-                    //     text: '12',
-                    //     state: 'normal'
-                    // },
-                    // {
-                    //     id: '13',
-                    //     text: '13',
-                    //     state: 'normal'
-                    // }
+                ]
+            }
+        ],
+        data2 = [
+            {
+                id: '1',
+                text: '1',
+                state: 'normal',
+                children: [{
+                    id: '6',
+                    text: '6',
+                    state: 'normal',
+                    //expand: false,
+                    children: [
+                        {
+                            id: '7',
+                            text: '7',
+                            state: 'normal'
+                        },
+                        {
+                            id: '8',
+                            text: '8',
+                            state: 'alter'
+                        },
+                        {
+                            id: '9',
+                            text: '9',
+                            state: 'alter',
+                            prepose: '8'
+                        },
+                        {
+                            id: '10',
+                            text: '10',
+                            state: 'alter',
+                            prepose: '9'
+                        },
+                        {
+                            id: '11',
+                            text: '11',
+                            state: 'alter'
+                        }
+                    ]
+                },
+                {
+                    id: '2',
+                    text: '2',
+                    state: 'delay',
+                    children: [
+                        {
+                            id: '41',
+                            text: '41',
+                            state: 'normal'
+                        },
+                        {
+                            id: '42',
+                            text: '42',
+                            state: 'alter',
+                            prepose: '41'
+                        },
+                        {
+                            id: '43',
+                            text: '43',
+                            state: 'alter',
+                            prepose: '42'
+                        },
+                        {
+                            id: '44',
+                            text: '44',
+                            state: 'alter',
+                            prepose: '44'
+                        }
+                    ]
+                },
+                {
+                    id: '3',
+                    text: '3',
+                    state: 'delayFinished',
+                    children: [
+                        {
+                            id: '20',
+                            text: '20',
+                            state: 'normal'
+                        },
+                        {
+                            id: '21',
+                            text: '21',
+                            state: 'alter',
+                            children: [
+                                {
+                                    id: '23',
+                                    text: '23',
+                                    state: 'normal'
+                                },
+                                {
+                                    id: '24',
+                                    text: '24',
+                                    state: 'alter',
+                                    prepose: '23'
+                                },
+                                {
+                                    id: '25',
+                                    text: '25',
+                                    state: 'alter',
+                                    prepose: '24'
+                                }
+                            ]
+                        },
+                        {
+                            id: '22',
+                            text: '22',
+                            state: 'alter'
+                        }
+                    ]
+
+                },
+                {
+                    id: '4',
+                    text: '4',
+                    state: 'normalFinished'
+                }
                 ]
             }
         ];
 
-    lampmap.load(data);
+    lampmap.load(data2);
 
     lampmap.render();
 });

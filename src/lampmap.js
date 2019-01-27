@@ -27,32 +27,69 @@
                     'user-select': 'none'
                 },
                 offset: {
-                    x: 80,
-                    y: 30
+                    x: 130,
+                    y: 50,
+                    expandX: 14,
+                    lineX: 20
                 },
                 node: {
                     default: {
-                        stroke: '#1E1E1E',
-                        strokeWidth: 3,
-                        fill: '#ADADAD',
-                        r: 14
+                        //stroke: '#1E1E1E',
+                        //strokeWidth: 3,
+                        //fill: '#b7b7b7',
+                        fill: 'url(#gradient-default)',
+                        gradient: {
+                            stop1: '#878586',
+                            stop2: '#b7b7b7'
+                        },
+                        r: 25
                     },
                     normal: {
-                        fill: '#2ED756'
+                        //fill: '#1cdf8f',
+                        fill: 'url(#gradient-normal)',
+                        gradient: {
+                            stop1: '#01c944',
+                            stop2: '#1cdf90'
+                        }
                     },
                     alter: {
-                        fill: '#F5DE19',
+                        //fill: '#ffd851',
+                        fill: 'url(#gradient-alter)',
+                        gradient: {
+                            stop1: '#febd01',
+                            stop2: '#ffd851'
+                        },
                         light: true
                     },
                     delay: {
-                        fill: '#ED3E3E',
+                        //fill: '#ff5a5a',
+                        fill: 'url(#gradient-delay)',
+                        gradient: {
+                            stop1: '#ff0101',
+                            stop2: '#ff5a5a'
+                        },
                         light: true
                     },
                     delayFinished: {
-                        fill: '#333333'
+                        //fill: '#4c4c4c',
+                        fill: 'url(#gradient-delayFinished)',
+                        gradient: {
+                            stop1: '#000000',
+                            stop2: '#4c4c4c'
+                        }
                     },
                     normalFinished: {
-                        fill: '#ADADAD'
+                        fill: 'url(#gradient-normalFinished)',
+                        gradient: {
+                            stop1: '#878586',
+                            stop2: '#b7b7b7'
+                        }
+                    },
+                    expand: {
+                        gradient: {
+                            stop1: '#0867dd',
+                            stop2: '#57a4ea'
+                        }
                     },
                     open: {
                         'stroke-dasharray': 0
@@ -63,39 +100,59 @@
                 },
                 text: {
                     default: {
-                        fill: '#1E1E1E',
+                        fill: '#FFFFFF',
                         'text-anchor': 'middle',
-                        'font-size': 12
+                        'font-size': 24,
+                        'font-weight': 'bolder',
+                        'font-family': ' 微软雅黑'
                     },
                     normal: {
-                        fill: '#1E1E1E'
+                        fill: '#FFFFFF'
                     },
                     alter: {
-                        fill: '#1E1E1E'
+                        fill: '#FFFFFF'
                     },
                     delay: {
-                        fill: '#1E1E1E'
+                        fill: '#FFFFFF'
                     },
                     delayFinished: {
                         fill: '#FFFFFF'
                     },
                     normalFinished: {
-                        fill: '#1E1E1E'
+                        fill: '#FFFFFF'
                     }
                 },
                 line: {
                     default: {
-                        stroke: '#1E1E1E',
+                        stroke: '#666666',
                         'stroke-width': 2,
                         fill: 'none',
                         'marker-end': 'url(#arrow)'
                     }
                 },
+                expand: {
+                    default: {
+                        background: {
+                            stroke: '#6eb1ef',
+                            strokeWidth: 0,
+                            //fill: '#6eb1ef',
+                            fill: 'url(#gradient-expand)',
+                            width: 30,
+                            height: 30,
+                            r: 6
+                        },
+                        frontground: {
+                            stroke: '#ffffff',
+                            'stroke-width': 2,
+                            fill: 'none',
+                        }
+                    }
+                },
                 arrow: {
                     default: {
-                        fill: '#1E1E1E',
+                        fill: '#666666',
                         'stroke-width': 1,
-                        stroke: '#1e1e1e'
+                        stroke: '#666666'
                     }
                 },
                 fieldMap: {
@@ -107,6 +164,7 @@
                 },
                 className: {
                     container: 'lamp-map',
+                    node: 'lamp-map-node',
                     children: 'lamp-map-children'
                 },
                 event: {
@@ -138,7 +196,10 @@
     };
 
     LampMap.prototype.render = function () {
-        var r = this.config.node.default.r;
+        var r = this.config.node.default.r,
+            gradients,
+            gradient,
+            i;
 
         if (this.container.length === 0 && this.data.length < 1) {
             return;
@@ -154,7 +215,17 @@
         else {
             this.paper.clear();
         }
+
         this.renderArrow();
+
+        gradients = this.config.node;
+        for (i in gradients) {
+            gradient = gradients[i].gradient;
+            if (gradient) {
+                this.renderLinearGradient('gradient-' + i, gradient.stop1, gradient.stop2);
+            }
+        }
+
         this.renderMap(this.data, r * 2, r * 4);
         this.resize();
     };
@@ -167,43 +238,49 @@
     LampMap.prototype.renderArrow = function () {
         var arrow;
 
-        arrow = this.paper.path('M0,0 L0,6 L9,3 z').attr(this.config.arrow.default);
+        arrow = this.paper.path('M0,0 L0,6 L3,3 z').attr(this.config.arrow.default);
 
-        arrow.marker(0, 0, 3, 3, 8, 3).attr({
+        arrow.marker(0, 0, 6, 6, 3, 3).attr({
             id: 'arrow',
             viewBox: '0 0 6 6'
         });
     };
 
+    LampMap.prototype.renderLinearGradient = function (id, start, end) {
+        this.paper.gradient('l(0%, 0%, 0%, 80%)' + start + '-' + end)
+            .attr({ id: id });
+    };
+
     LampMap.prototype.renderMap = function (data, x, y, parentNode) {
+
         var x1 = x,
             y1 = y,
             x2,
             y2,
+            y3,
+            y4,
+            y5,
+            n,
+            bbox,
             item,
-            offsetX = this.config.offset.x + this.config.node.default.r,
+            offsetX = this.config.offset.x + this.config.node.default.r * 2 + this.config.expand.default.background.width + this.config.offset.expandX,
             offsetY = this.config.offset.y + this.config.node.default.r,
             node,
+            currentNode,
             prevNode,
             prevNodeBbox,
             subNode,
             subNodeBbox,
-            nextItems,
             list = [],
             path = [],
             parentId,
             index,
-            preposeNode,
-            preposeItem;
+            m,
+            length;
 
 
         for (var i = 0, len = data.length; i < len; i++) {
             item = data[i];
-            //前置节点未显示不渲染当前节点
-            preposeItem = this.hash[item.prepose];
-            if (item.prepose && !preposeItem) {
-                continue;
-            }
             //设置当前节点折叠状态
             if (typeof item.expand === 'undefined') {
                 item.expand = true;
@@ -223,7 +300,7 @@
                 y1 = prevNodeBbox.cy + prevNodeBbox.r1 + offsetY;
             }
             //绘制当前节点
-            node = this.renderNode(x1, y1, item.id, item.text, item.state || '');
+            node = this.renderNode(x1, y1, item);
             //记录当前节点相关信息
             item.x = x1;
             item.y = y1;
@@ -249,44 +326,35 @@
             }
 
             prevNode = node;
-
-            //绘制连线
-            if (preposeItem) {
-                if (!preposeItem.nextItems) {
-                    preposeItem.nextItems = [];
-                }
-                //前置任务是同级兄弟节点且为折叠状态Y位置计算
-                if (preposeItem.parentId === item.parentId && !preposeItem.expand) {
-                    nextItems = preposeItem.nextItems;
-
-                    if (nextItems.length === 0) {
-                        y2 = preposeItem.y;
-                    }
-                    else {
-                        y2 = nextItems[nextItems.length - 1].y + offsetY;
-                    }
-                    this.translateYNode(node, y2);
-
-                    item.y = y2;
-                    preposeItem.nextItems.push(item);
-                }
-
-                preposeNode = this.paper.select('[id="' + preposeItem.id + '"]');
-                x2 = preposeItem.x + offsetX;
-                item.x = x2;
-                this.translateXNode(node, x2);
-
-                list.push(this.renderBrokenLine(preposeNode, node, true));
-            } else if (parentNode) {
-                list.push(this.renderBrokenLine(parentNode, node));
-            }
+            currentNode = node;
 
             this.bindNodeEvent(node, item);
 
             //递归下级节点
             if (item.children && item.children.length > 0 && item.expand) {
+                length = item.children.length;
                 subNode = this.renderMap(item.children, x + offsetX, y1, node);
+
                 if (subNode) {
+                    //父节点垂直居中
+
+                    m = new Snap.Matrix();
+                    n = subNode[length - 1];
+                    n = n.hasClass(this.config.className.node) ? n : n.select('.' + this.config.className.node);
+                    bbox = n.getBBox();
+                    y2 = bbox.y + bbox.height;
+
+                    n = subNode[0];
+                    n = n.hasClass(this.config.className.node) ? n : n.select('.' + this.config.className.node);
+                    bbox = n.getBBox();
+                    y4 = bbox.y;
+
+                    y5 = y4 - node.getBBox().y;
+                    m.translate(0, (y2 - y4) / 2 - this.config.node.default.r + y5);
+                    node.transform(m);
+                    //绘制连线
+                    this.renderLines(node, subNode);
+                    //放入组中
                     subNode.attr({ 'class': this.config.className.children });
                     node = this.paper.g(node, subNode);
                 }
@@ -301,7 +369,22 @@
         return this.paper.g.apply(this.paper, list);
     };
 
-    LampMap.prototype.renderNode = function (x, y, id, text, state) {
+    LampMap.prototype.renderLines = function (parentNode, children) {
+        var i,
+            child;
+
+        if (parentNode && children) {
+            i = 0;
+
+            while (children[i]) {
+                child = children[i];
+                this.renderBrokenLine(parentNode, child, true);
+                i++;
+            }
+        }
+    };
+
+    LampMap.prototype.renderContent = function (x, y, id, text, state) {
         var circleEl,
             textEl,
             attr,
@@ -325,6 +408,65 @@
         return node;
     };
 
+    LampMap.prototype.renderExpand = function (x, y, id, expand) {
+        var backgroundAttr,
+            frontgoundAttr,
+            rect,
+            path1,
+            path2,
+            path3,
+            innerOffset = 6,
+            node,
+            x1,
+            y1,
+            outerWidth,
+            innerWidth;
+
+        backgroundAttr = $.extend({}, this.config.expand.default.background);
+        frontgoundAttr = $.extend({}, this.config.expand.default.frontground);
+        outerWidth = backgroundAttr.width;
+        innerWidth = outerWidth - innerOffset * 2;
+        x1 = x;
+        y1 = y - backgroundAttr.height / 2;
+
+        rect = this.paper.rect(x1, y1, backgroundAttr.width, backgroundAttr.height, backgroundAttr.r).attr(backgroundAttr);
+        path1 = this.paper.path([
+            'M', x1 + innerOffset, ' ', y1 + innerOffset, 'h', innerWidth, ' ', 'v', innerWidth, ' ', 'h', -innerWidth, 'z',
+        ].join('')).attr(frontgoundAttr);
+        path2 = this.paper.path([
+            'M', x1 + innerOffset * 1.5, ' ', y1 + backgroundAttr.height / 2, 'h', innerWidth - innerOffset
+        ].join('')).attr(frontgoundAttr);
+        path3 = this.paper.path([
+            'M', x1 + backgroundAttr.width / 2, ' ', y1 + innerOffset * 1.5, 'v', innerWidth - innerOffset,
+        ].join('')).attr(frontgoundAttr);
+
+        node = this.paper.g(rect, path1, path2, path3).attr({
+            id: id,
+            cursor: 'pointer',
+            'data-expand': expand
+        });
+
+        return node;
+    };
+
+    LampMap.prototype.renderNode = function (x, y, item) {
+        var content,
+            expandBgAttr = this.config.expand.default.background,
+            id = item.id,
+            text = item.text,
+            state = item.state || '',
+            expand = item.expand,
+            g;
+
+        expand = this.renderExpand(x, y, id, expand);
+        x = x + expandBgAttr.width + this.config.offset.expandX + this.config.node.default.r;
+        content = this.renderContent(x, y, id, text, state);
+
+        g = this.paper.g(expand, content);
+        g.attr({ 'class': this.config.className.node });
+        return g;
+    };
+
     LampMap.prototype.translateXNode = function (node, x) {
         node.select('circle').attr('cx', x);
         node.select('text').attr('x', x);
@@ -346,6 +488,7 @@
     LampMap.prototype.renderBrokenLine = function (fromNode, toNode, hasArrow) {
         var fromBBox = fromNode.getBBox(),
             toBBox = toNode.getBBox(),
+            offsetX = this.config.offset.lineX,
             x1 = '',
             y1 = '',
             x2 = '',
@@ -356,16 +499,18 @@
             y4 = '',
             path;
 
-        x1 = fromBBox.cx + fromBBox.r1;
+        // x1 = fromBBox.cx + fromBBox.r1;
+        // y1 = fromBBox.cy;
+        x1 = fromBBox.x + fromBBox.width + offsetX;
         y1 = fromBBox.cy;
 
-        x2 = x1 + ((toBBox.cx - toBBox.r1) - (fromBBox.cx + fromBBox.r1)) / 2;
+        x2 = x1 + (toBBox.x - x1 - offsetX) / 2;
         y2 = y1;
 
         x3 = x2;
         y3 = toBBox.cy;
 
-        x4 = toBBox.cx - toBBox.r1;
+        x4 = toBBox.x - offsetX;
         y4 = y3;
 
         path = ['M', x1, ' ', y1, 'L', x2, ' ', y2, 'L', x3, ' ', y3, 'L', x4, ' ', y4].join('');
@@ -380,29 +525,29 @@
         return path;
     };
 
-    LampMap.prototype.renderExpand = function (node) {
-        var hasSubNode = node.attr('data-hasSubNode'),
-            expand,
-            childrenNode;
+    // LampMap.prototype.renderExpand = function (node) {
+    //     var hasSubNode = node.attr('data-hasSubNode'),
+    //         expand,
+    //         childrenNode;
 
-        if (!hasSubNode) {
-            return;
-        }
+    //     if (!hasSubNode) {
+    //         return;
+    //     }
 
-        expand = node.attr('data-expand') || 'open';
-        childrenNode = node.parent().select('.' + this.config.className.children);
+    //     expand = node.attr('data-expand') || 'open';
+    //     childrenNode = node.parent().select('.' + this.config.className.children);
 
-        if (expand === 'open') {
-            $(childrenNode.node).hide();
-            node.attr(this.config.node.close);
-        }
-        else {
-            $(childrenNode.node).show();
-            node.attr(this.config.node.open);
-        }
+    //     if (expand === 'open') {
+    //         $(childrenNode.node).hide();
+    //         node.attr(this.config.node.close);
+    //     }
+    //     else {
+    //         $(childrenNode.node).show();
+    //         node.attr(this.config.node.open);
+    //     }
 
-        node.attr('data-expand', expand === 'open' ? 'close' : 'open');
-    };
+    //     node.attr('data-expand', expand === 'open' ? 'close' : 'open');
+    // };
 
     LampMap.prototype.changeExpand = function (node) {
         var id = node.attr('id'),
@@ -460,6 +605,7 @@
     };
 
     LampMap.prototype.flashLight = function (node, from, to) {
+        return;
         var self = this;
 
         if (!this.enableFlashLight) {
