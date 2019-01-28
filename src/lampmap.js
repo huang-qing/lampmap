@@ -252,21 +252,12 @@
     };
 
     LampMap.prototype.renderMap = function (data, x, y, parentNode) {
-
         var x1 = x,
             y1 = y,
-            x2,
-            y2,
-            y3,
-            y4,
-            y5,
-            n,
-            bbox,
             item,
             offsetX = this.config.offset.x + this.config.node.default.r * 2 + this.config.expand.default.background.width + this.config.offset.expandX,
             offsetY = this.config.offset.y + this.config.node.default.r,
             node,
-            currentNode,
             prevNode,
             prevNodeBbox,
             subNode,
@@ -275,9 +266,7 @@
             path = [],
             parentId,
             index,
-            m,
             length;
-
 
         for (var i = 0, len = data.length; i < len; i++) {
             item = data[i];
@@ -326,7 +315,6 @@
             }
 
             prevNode = node;
-            currentNode = node;
 
             this.bindNodeEvent(node, item);
 
@@ -336,22 +324,7 @@
                 subNode = this.renderMap(item.children, x + offsetX, y1, node);
 
                 if (subNode) {
-                    //父节点垂直居中
-
-                    m = new Snap.Matrix();
-                    n = subNode[length - 1];
-                    n = n.hasClass(this.config.className.node) ? n : n.select('.' + this.config.className.node);
-                    bbox = n.getBBox();
-                    y2 = bbox.y + bbox.height;
-
-                    n = subNode[0];
-                    n = n.hasClass(this.config.className.node) ? n : n.select('.' + this.config.className.node);
-                    bbox = n.getBBox();
-                    y4 = bbox.y;
-
-                    y5 = y4 - node.getBBox().y;
-                    m.translate(0, (y2 - y4) / 2 - this.config.node.default.r + y5);
-                    node.transform(m);
+                    this.adjustParntNode(node, subNode, length);
                     //绘制连线
                     this.renderLines(node, subNode);
                     //放入组中
@@ -369,6 +342,26 @@
         return this.paper.g.apply(this.paper, list);
     };
 
+    LampMap.prototype.adjustParntNode = function (parentNode, subNode, count) {
+        var bbox,
+            y1,
+            y2,
+            y3;
+
+        if (subNode) {
+            //父节点垂直居中
+            bbox = this.getMainNodeBBox(subNode[count - 1]);
+            y1 = bbox.y + bbox.height;
+
+            bbox = this.getMainNodeBBox(subNode[0]);
+            y2 = bbox.y;
+
+            y3 = y2 - parentNode.getBBox().y;
+
+            this.translate(parentNode, 0, (y1 - y2) / 2 - this.config.node.default.r + y3);
+        }
+    };
+
     LampMap.prototype.renderLines = function (parentNode, children) {
         var i,
             child;
@@ -378,10 +371,40 @@
 
             while (children[i]) {
                 child = children[i];
-                this.renderBrokenLine(parentNode, child, true);
+                child = this.findMainNode(child);
+
+                if (i === 0) {
+                    //绘制父节点连线
+                    this.renderStartLine(parentNode, child, false);
+                }
+
+                if ((i === 0 && children[i + 1]) || (!children[i + 1] && i !== 0)) {
+                    //绘制到首、尾节点的折线
+                    this.renderBrokenLine(parentNode, child, true);
+                } else {
+                    //绘制除首、尾子节点的连线
+                    this.renderEndLine(parentNode, child, true);
+                }
+
                 i++;
             }
         }
+    };
+
+    LampMap.prototype.translate = function (node, dx, dy) {
+        var m;
+        m = new Snap.Matrix();
+        m.translate(dx, dy);
+        node.transform(m);
+    };
+
+    LampMap.prototype.findMainNode = function (node) {
+        return node.hasClass(this.config.className.node) ? node : node.select('.' + this.config.className.node);
+    };
+
+    LampMap.prototype.getMainNodeBBox = function (node) {
+        node = this.findMainNode(node);
+        return node.getBBox();
     };
 
     LampMap.prototype.renderContent = function (x, y, id, text, state) {
@@ -485,10 +508,55 @@
         }
     };
 
+    // LampMap.prototype.renderBrokenLine = function (fromNode, toNode, hasArrow) {
+    //     var fromBBox = fromNode.getBBox(),
+    //         toBBox = toNode.getBBox(),
+    //         offsetX = this.config.offset.lineX,
+    //         x1 = '',
+    //         y1 = '',
+    //         x2 = '',
+    //         y2 = '',
+    //         x3 = '',
+    //         y3 = '',
+    //         x4 = '',
+    //         y4 = '',
+    //         path;
+
+    //     // x1 = fromBBox.cx + fromBBox.r1;
+    //     // y1 = fromBBox.cy;
+    //     x1 = fromBBox.x + fromBBox.width + offsetX;
+    //     y1 = fromBBox.cy;
+
+    //     x2 = x1 + (toBBox.x - x1 - offsetX) / 2;
+    //     y2 = y1;
+
+    //     x3 = x2;
+    //     y3 = toBBox.cy;
+
+    //     x4 = toBBox.x - offsetX;
+    //     y4 = y3;
+
+    //     path = ['M', x1, ' ', y1,
+    //         'L', x2, ' ', y2,
+    //         'L', x3, ' ', y3,
+    //         'L', x4, ' ', y4].join('');
+
+    //     path = this.paper.path(path)
+    //         .attr(this.config.line.default);
+
+    //     if (hasArrow) {
+    //         $(path.node).attr('marker-end', 'url(#arrow)');
+    //     }
+
+    //     return path;
+    // };
+
     LampMap.prototype.renderBrokenLine = function (fromNode, toNode, hasArrow) {
         var fromBBox = fromNode.getBBox(),
             toBBox = toNode.getBBox(),
             offsetX = this.config.offset.lineX,
+            offsetY2 = 10,
+            offsetX2 = 10,
             x1 = '',
             y1 = '',
             x2 = '',
@@ -499,8 +567,6 @@
             y4 = '',
             path;
 
-        // x1 = fromBBox.cx + fromBBox.r1;
-        // y1 = fromBBox.cy;
         x1 = fromBBox.x + fromBBox.width + offsetX;
         y1 = fromBBox.cy;
 
@@ -513,7 +579,13 @@
         x4 = toBBox.x - offsetX;
         y4 = y3;
 
-        path = ['M', x1, ' ', y1, 'L', x2, ' ', y2, 'L', x3, ' ', y3, 'L', x4, ' ', y4].join('');
+        offsetY2 = y3 - y2 > 0 ? offsetY2 : -offsetY2;
+
+        path = [
+            'M', x2, ' ', y2,
+            'L', x3, ' ', y3 - offsetY2,
+            'Q', x3, ' ', y3, ' ', x3 + offsetX2, ' ', y3,
+            'L', x4, ' ', y4].join('');
 
         path = this.paper.path(path)
             .attr(this.config.line.default);
@@ -524,6 +596,74 @@
 
         return path;
     };
+
+    LampMap.prototype.renderStartLine = function (fromNode, toNode, hasArrow) {
+        var fromBBox = fromNode.getBBox(),
+            toBBox = toNode.getBBox(),
+            offsetX = this.config.offset.lineX,
+            x1 = '',
+            y1 = '',
+            x2 = '',
+            y2 = '',
+            path;
+
+        x1 = fromBBox.x + fromBBox.width + offsetX;
+        y1 = fromBBox.cy;
+
+        x2 = x1 + (toBBox.x - x1 - offsetX) / 2;
+        y2 = y1;
+
+        path = ['M', x1, ' ', y1,
+            'L', x2, ' ', y2].join('');
+
+
+        path = this.paper.path(path)
+            .attr(this.config.line.default);
+
+        if (hasArrow) {
+            $(path.node).attr('marker-end', 'url(#arrow)');
+        }
+
+        return path;
+    };
+
+    LampMap.prototype.renderEndLine = function (fromNode, toNode, hasArrow) {
+        var fromBBox = fromNode.getBBox(),
+            toBBox = toNode.getBBox(),
+            offsetX = this.config.offset.lineX,
+            x1 = '',
+            x2 = '',
+            x3 = '',
+            y3 = '',
+            x4 = '',
+            y4 = '',
+            path;
+
+        x1 = fromBBox.x + fromBBox.width + offsetX;
+
+        x2 = x1 + (toBBox.x - x1 - offsetX) / 2;
+
+        x3 = x2;
+        y3 = toBBox.cy;
+
+        x4 = toBBox.x - offsetX;
+        y4 = y3;
+
+        path = [
+            'M', x3, ' ', y3,
+            'L', x4, ' ', y4].join('');
+
+
+        path = this.paper.path(path)
+            .attr(this.config.line.default);
+
+        if (hasArrow) {
+            $(path.node).attr('marker-end', 'url(#arrow)');
+        }
+
+        return path;
+    };
+
 
     // LampMap.prototype.renderExpand = function (node) {
     //     var hasSubNode = node.attr('data-hasSubNode'),

@@ -172,6 +172,25 @@ $(function () {
                             state: 'alter'
                         }
                     ]
+                },
+                {
+                    id: '50',
+                    text: '50',
+                    state: 'normal',
+                    children: [
+                        {
+                            id: '51',
+                            text: '51',
+                            state: 'normal',
+                            children: [
+                                {
+                                    id: '52',
+                                    text: '52',
+                                    state: 'normal'
+                                }
+                            ]
+                        }
+                    ]
                 }
                 ]
             }
@@ -297,7 +316,7 @@ $(function () {
             }
         ];
 
-    lampmap.load(data2);
+    lampmap.load(data);
 
     lampmap.render();
 });
