@@ -1,8 +1,8 @@
 /* global $ LampMap */
 $(function () {
     var options = {
-            container: $('#lampmap')[0]
-        },
+        container: $('#lampmap')[0]
+    },
         lampmap = new LampMap(options),
         data = [
             {
