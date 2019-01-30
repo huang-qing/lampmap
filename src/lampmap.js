@@ -34,6 +34,35 @@
                     preposeX: 40,
                     pointX: 20
                 },
+                shadows: {
+                    defalut: {
+                        fill: '#909090'
+                    },
+                    normal: {
+                        fill: '#16b271'
+                    },
+                    alter: {
+                        fill: '#cdac41'
+                    },
+                    'alter-light': {
+                        fill: '#cc8600'
+                    },
+                    delay: {
+                        fill: '#ce4849'
+                    },
+                    'delay-light': {
+                        fill: '#be3032'
+                    },
+                    delayFinished: {
+                        fill: '#3d3d3d'
+                    },
+                    normalFinished: {
+                        fill: '#909090'
+                    },
+                    expand: {
+                        fill: '#4584ba'
+                    }
+                },
                 gradients: {
                     defalut: {
                         stop1: '#878586',
@@ -43,14 +72,22 @@
                         stop1: '#01c944',
                         stop2: '#1cdf90'
                     },
-                    alter: {
+                    'alter': {
                         stop1: '#febd01',
                         stop2: '#ffd851'
+                    },
+                    'alter-light': {
+                        stop1: '#ff8a00',
+                        stop2: '#ffe695'
                     },
                     delay: {
                         stop1: '#ff0101',
                         stop2: '#ff5a5a'
 
+                    },
+                    'delay-light': {
+                        stop1: '#ec0000',
+                        stop2: '#ffaaaa'
                     },
                     delayFinished: {
                         stop1: '#000000',
@@ -68,24 +105,38 @@
                 node: {
                     default: {
                         fill: 'url(#gradient-default)',
+                        filter: 'url(#shadow-default)',
                         r: 25
                     },
                     normal: {
-                        fill: 'url(#gradient-normal)'
+                        fill: 'url(#gradient-normal)',
+                        filter: 'url(#shadow-normal)'
                     },
                     alter: {
                         fill: 'url(#gradient-alter)',
+                        filter: 'url(#shadow-alter)',
                         light: true
+                    },
+                    'alter-light': {
+                        fill: 'url(#gradient-alter-light)',
+                        filter: 'url(#shadow-alter-light)'
                     },
                     delay: {
                         fill: 'url(#gradient-delay)',
+                        filter: 'url(#shadow-delay)',
                         light: true
                     },
+                    'delay-light': {
+                        fill: 'url(#gradient-delay-light)',
+                        filter: 'url(#shadow-delay-light)'
+                    },
                     delayFinished: {
-                        fill: 'url(#gradient-delayFinished)'
+                        fill: 'url(#gradient-delayFinished)',
+                        filter: 'url(#shadow-delayFinished)'
                     },
                     normalFinished: {
-                        fill: 'url(#gradient-normalFinished)'
+                        fill: 'url(#gradient-normalFinished)',
+                        filter: 'url(#shadow-normalFinished)'
                     }
                 },
                 text: {
@@ -126,6 +177,7 @@
                             stroke: '#6eb1ef',
                             strokeWidth: 0,
                             fill: 'url(#gradient-expand)',
+                            filter: 'url(#shadow-expand)',
                             width: 30,
                             height: 30,
                             r: 6
@@ -193,7 +245,7 @@
         this.hash = {};
         this.config = this.options.config;
         this.clickType = null;
-        this.enableFlashLight = false;
+        this.enableFlashLight = true;
         this.paper;
     }
 
@@ -221,6 +273,7 @@
 
         this.renderArrow();
         this.renderLinearGradients();
+        this.renderShadows();
 
         this.renderMap(this.data, r * 2, r * 4);
         this.resize();
@@ -246,6 +299,7 @@
         var gradients,
             gradient,
             i;
+
         gradients = this.config.gradients;
         for (i in gradients) {
             gradient = gradients[i];
@@ -258,6 +312,47 @@
     LampMap.prototype.renderLinearGradient = function (id, start, end) {
         this.paper.gradient('l(0%, 0%, 0%, 80%)' + start + '-' + end)
             .attr({ id: id });
+    };
+
+    LampMap.prototype.renderShadows = function () {
+        var shadows,
+            shadow,
+            i;
+
+        shadows = this.config.shadows;
+        for (i in shadows) {
+            shadow = shadows[i];
+            if (shadow) {
+                this.renderShadow('shadow-' + i, shadow.fill);
+            }
+        }
+    };
+
+    LampMap.prototype.renderShadow = function (id, color) {
+        var filstr = [
+            //'<filter id="inset-shadow" x="-50%" y="-50%" width="200%" height="200%">',
+            '   <feComponentTransfer in=SourceAlpha>',
+            '       <feFuncA type="table" tableValues="1 0" />',
+            '   </feComponentTransfer>',
+            //'   <feGaussianBlur stdDeviation="3"/>',
+            '   <feOffset dx="0" dy="-5" result="offsetblur"/>',
+            '   <feFlood flood-color="', color, '" result="color"/>',
+            '   <feComposite in2="offsetblur" operator="in"/>',
+            '   <feComposite in2="SourceAlpha" operator="in" />',
+            '   <feMerge>',
+            '       <feMergeNode in="SourceGraphic" />',
+            '       <feMergeNode />',
+            '   </feMerge>',
+            //'</filter> '
+        ].join('');
+
+        this.paper.filter(filstr).attr({
+            id: id,
+            x: '-50%',
+            y: '-50%',
+            width: '200%',
+            height: '200%'
+        });
     };
 
     LampMap.prototype.renderMap = function (data, x, y, parentNode) {
@@ -449,6 +544,7 @@
         var circleEl,
             textEl,
             attr,
+            f = this.paper.filter(Snap.filter.shadow(2, -2, .3)),
             node;
 
         state = this.config.fieldMap[state];
@@ -456,8 +552,10 @@
         attr = $.extend({}, this.config.node.default, this.config.node[state] || {});
         circleEl = this.paper.circle(x, y, this.config.node.default.r).attr(attr);
 
-        attr = $.extend({}, this.config.text.default, this.config.text[state] || {});
-        textEl = this.paper.text(x, y + this.config.text.default['font-size'] / 2 - 2, text).attr(attr);
+        attr = $.extend({}, this.config.text.default, this.config.text[state] , {
+            // filter:f
+        });
+        textEl = this.paper.text(x, y - 2 + this.config.text.default['font-size'] / 2 - 2, text).attr(attr);
 
         node = this.paper.g(circleEl, textEl).attr({
             id: id,
@@ -578,9 +676,9 @@
 
     LampMap.prototype.nodeAnimate = function (node, state) {
         var config = this.config.node[state] || {};
-
+        node = node.select('circle');
         if (config.light) {
-            this.flashLight(node, 2, 0.3);
+            this.flashLight(node, state, true);
         }
     };
 
@@ -703,7 +801,8 @@
             path1,
             path2,
             path3,
-            innerOffset = 6,
+            innerOffset = 7,
+            offsetY = 2,
             node,
             x1,
             y1,
@@ -718,14 +817,17 @@
         y1 = y - backgroundAttr.height / 2;
 
         rect = this.paper.rect(x1, y1, backgroundAttr.width, backgroundAttr.height, backgroundAttr.r).attr(backgroundAttr);
+        //框
         path1 = this.paper.path([
-            'M', x1 + innerOffset, ' ', y1 + innerOffset, 'h', innerWidth, ' ', 'v', innerWidth, ' ', 'h', -innerWidth, 'z',
+            'M', x1 + innerOffset, ' ', y1 + innerOffset - offsetY, 'h', innerWidth, ' ', 'v', innerWidth, ' ', 'h', -innerWidth, 'z',
         ].join('')).attr(frontgoundAttr);
+        //横
         path2 = this.paper.path([
-            'M', x1 + innerOffset * 1.5, ' ', y1 + backgroundAttr.height / 2, 'h', innerWidth - innerOffset
+            'M', x1 + innerOffset * 1.5, ' ', y1 + backgroundAttr.height / 2 - offsetY, 'h', innerWidth - innerOffset
         ].join('')).attr(frontgoundAttr);
+        //竖
         path3 = this.paper.path([
-            'M', x1 + backgroundAttr.width / 2, ' ', y1 + innerOffset * 1.5, 'v', innerWidth - innerOffset,
+            'M', x1 + backgroundAttr.width / 2, ' ', y1 + innerOffset * 1.5- offsetY, 'v', innerWidth - innerOffset,
         ].join('')).attr(frontgoundAttr);
 
         if (expand) {
@@ -804,32 +906,35 @@
         this.changeExpand(node);
     };
 
-    LampMap.prototype.flashLight = function (node, from, to) {
-        var self = this;
+    LampMap.prototype.flashLight = function (node, state, light) {
+        var self = this,
+            from = this.config.node[state] || {},
+            to = this.config.node[state + '-light'] || {},
+            attr = light ? to : from;
 
-        if (!this.enableFlashLight) {
+        if (!this.enableFlashLight || !attr) {
             return;
         }
 
-        Snap.animate(from, to, function (val) {
-            node.attr({
-                opacity: val
-            });
-
-        }, 2000, null, function () {
-            self.flashLight(node, to, from);
+        node.attr({
+            fill: attr.fill,
+            filter: attr.filter
+        });
+        node.animate({}, 1000, null, function () {
+            self.flashLight(node, state, !light);
         });
     };
 
     LampMap.prototype.resize = function () {
         var bbox,
+            offset = 10,
             r = this.config.node.default.r;
 
         bbox = this.paper.getBBox();
 
         this.paper.attr({
-            width: bbox.width + r * 2,
-            height: bbox.height + r * 4
+            width: bbox.width + r * 2 + offset,
+            height: bbox.height + r * 4 + offset
         });
     };
 
