@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 /* global $ LampMap */
 $(function() {
     var options, lampmap, data, data2, data3;

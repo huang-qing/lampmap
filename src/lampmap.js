@@ -585,7 +585,7 @@
         var circleEl,
             textEl,
             attr,
-            f = this.paper.filter(Snap.filter.shadow(2, -2, 0.3)),
+            //f = this.paper.filter(Snap.filter.shadow(2, -2, 0.3)),
             node;
 
         state = this.config.fieldMap[state];
