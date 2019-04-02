@@ -1,9 +1,9 @@
 /*!
- * lampmap v1.0.0 - jQuery plug 
+ * lampmap v1.0.0 - jQuery plug
  *
  * Includes jquery.js
  * Includes Snap.js
- * 
+ *
  * Copyright © 2018-2019 huangqing
  * Released under the MIT license
  *
@@ -12,7 +12,7 @@
 
 /* global jQuery Snap */
 
-(function ($, Snap, window, console) {
+(function($, Snap, window, console) {
     function LampMap(options) {
         var _options = {
             container: null,
@@ -72,7 +72,7 @@
                         stop1: '#01c944',
                         stop2: '#1cdf90'
                     },
-                    'alter': {
+                    alter: {
                         stop1: '#febd01',
                         stop2: '#ffd851'
                     },
@@ -83,7 +83,6 @@
                     delay: {
                         stop1: '#ff0101',
                         stop2: '#ff5a5a'
-
                     },
                     'delay-light': {
                         stop1: '#ec0000',
@@ -185,7 +184,7 @@
                         frontground: {
                             stroke: '#ffffff',
                             'stroke-width': 2,
-                            fill: 'none',
+                            fill: 'none'
                         }
                     }
                 },
@@ -222,15 +221,15 @@
                     point: 'lamp-map-node-point'
                 },
                 event: {
-                    click: function (e, item) {
+                    click: function(e, item) {
                         //console.log('click');
                         // console.dir(item);
                     },
-                    dbclick: function (e, item) {
+                    dbclick: function(e, item) {
                         //console.log('dbclick');
                         // console.dir(item);
                     },
-                    expand: function (e, item) {
+                    expand: function(e, item) {
                         //console.log('expand');
                         // console.dir(item);
                     }
@@ -249,25 +248,25 @@
         this.paper;
     }
 
-    LampMap.prototype.load = function (data) {
+    LampMap.prototype.load = function(data) {
         this.data = data;
     };
 
-    LampMap.prototype.render = function () {
+    LampMap.prototype.render = function() {
         var r = this.config.node.default.r;
 
         if (this.container.length === 0 && this.data.length < 1) {
             return;
         }
 
-        this.container.addClass(this.config.className.container)
+        this.container
+            .addClass(this.config.className.container)
             .css(this.config.classAttr);
 
         if (!this.paper) {
             this.paper = Snap();
             this.container.append(this.paper.node);
-        }
-        else {
+        } else {
             this.paper.clear();
         }
 
@@ -275,19 +274,41 @@
         this.renderLinearGradients();
         this.renderShadows();
 
+        this.init();
         this.renderMap(this.data, r * 2, r * 4);
         this.resize();
     };
 
-    LampMap.prototype.clear = function () {
+    LampMap.prototype.init = function() {
+        this.initNodeHash(this.data);
+    };
+
+    LampMap.prototype.initNodeHash = function(data) {
+        var item;
+        if (data instanceof Array) {
+            for (var i = 0, len = data.length; i < len; i++) {
+                item = data[i];
+                this.hash[item.id] = {
+                    id: item.id,
+                    text: item.text,
+                    state: item.state
+                };
+                this.initNodeHash(item.children);
+            }
+        }
+    };
+
+    LampMap.prototype.clear = function() {
         this.paper.clear();
         this.hash = {};
     };
 
-    LampMap.prototype.renderArrow = function () {
+    LampMap.prototype.renderArrow = function() {
         var arrow;
 
-        arrow = this.paper.path('M0,0 L0,6 L3,3 z').attr(this.config.arrow.default);
+        arrow = this.paper
+            .path('M0,0 L0,6 L3,3 z')
+            .attr(this.config.arrow.default);
 
         arrow.marker(0, 0, 6, 6, 3, 3).attr({
             id: 'arrow',
@@ -295,29 +316,30 @@
         });
     };
 
-    LampMap.prototype.renderLinearGradients = function () {
-        var gradients,
-            gradient,
-            i;
+    LampMap.prototype.renderLinearGradients = function() {
+        var gradients, gradient, i;
 
         gradients = this.config.gradients;
         for (i in gradients) {
             gradient = gradients[i];
             if (gradient) {
-                this.renderLinearGradient('gradient-' + i, gradient.stop1, gradient.stop2);
+                this.renderLinearGradient(
+                    'gradient-' + i,
+                    gradient.stop1,
+                    gradient.stop2
+                );
             }
         }
     };
 
-    LampMap.prototype.renderLinearGradient = function (id, start, end) {
-        this.paper.gradient('l(0%, 0%, 0%, 80%)' + start + '-' + end)
+    LampMap.prototype.renderLinearGradient = function(id, start, end) {
+        this.paper
+            .gradient('l(0%, 0%, 0%, 80%)' + start + '-' + end)
             .attr({ id: id });
     };
 
-    LampMap.prototype.renderShadows = function () {
-        var shadows,
-            shadow,
-            i;
+    LampMap.prototype.renderShadows = function() {
+        var shadows, shadow, i;
 
         shadows = this.config.shadows;
         for (i in shadows) {
@@ -328,7 +350,7 @@
         }
     };
 
-    LampMap.prototype.renderShadow = function (id, color) {
+    LampMap.prototype.renderShadow = function(id, color) {
         var filstr = [
             //'<filter id="inset-shadow" x="-50%" y="-50%" width="200%" height="200%">',
             '   <feComponentTransfer in=SourceAlpha>',
@@ -336,13 +358,15 @@
             '   </feComponentTransfer>',
             //'   <feGaussianBlur stdDeviation="3"/>',
             '   <feOffset dx="0" dy="-5" result="offsetblur"/>',
-            '   <feFlood flood-color="', color, '" result="color"/>',
+            '   <feFlood flood-color="',
+            color,
+            '" result="color"/>',
             '   <feComposite in2="offsetblur" operator="in"/>',
             '   <feComposite in2="SourceAlpha" operator="in" />',
             '   <feMerge>',
             '       <feMergeNode in="SourceGraphic" />',
             '       <feMergeNode />',
-            '   </feMerge>',
+            '   </feMerge>'
             //'</filter> '
         ].join('');
 
@@ -355,11 +379,14 @@
         });
     };
 
-    LampMap.prototype.renderMap = function (data, x, y, parentNode) {
+    LampMap.prototype.renderMap = function(data, x, y, parentNode) {
         var x1 = x,
             y1 = y,
             item,
-            width = this.config.node.default.r * 2 + this.config.expand.default.background.width + this.config.offset.expandX,
+            width =
+                this.config.node.default.r * 2 +
+                this.config.expand.default.background.width +
+                this.config.offset.expandX,
             offsetX = this.config.offset.x + width,
             offsetY = this.config.offset.y + this.config.node.default.r,
             node,
@@ -401,6 +428,7 @@
             item.x = x1;
             item.y = y1;
             item.index = index;
+            //test
             this.hash[item.id] = item;
             path.push(i + 1);
             index = path.join('-');
@@ -435,24 +463,26 @@
                     //绘制连线
                     lines = this.renderLines(node, subNode);
                     //放入组中
-                    subNode.attr({ 'class': this.config.className.children });
+                    subNode.attr({ class: this.config.className.children });
                     node = this.paper.g(node, lines, subNode);
                 }
-            }
-            else {
+            } else {
                 subNode = null;
             }
 
             //前置节点指示
-            if ((!item.children || item.children.length === 0) && item.prepose) {
+            if (
+                (!item.children || item.children.length === 0) &&
+                item.prepose
+            ) {
                 preposeNode = this.renderPreposeNode(
                     x + width + this.config.offset.preposeX,
                     y1,
-                    this.hash[item.prepose]);
+                    this.hash[item.prepose]
+                );
 
                 node = this.paper.g(node, preposeNode);
             }
-
 
             list.push(node);
         }
@@ -460,11 +490,8 @@
         return this.paper.g.apply(this.paper, list);
     };
 
-    LampMap.prototype.adjustParntNode = function (parentNode, subNode, count) {
-        var bbox,
-            y1,
-            y2,
-            y3;
+    LampMap.prototype.adjustParntNode = function(parentNode, subNode, count) {
+        var bbox, y1, y2, y3;
 
         if (subNode) {
             //父节点垂直居中
@@ -476,11 +503,15 @@
 
             y3 = y2 - parentNode.getBBox().y;
 
-            this.translate(parentNode, 0, (y1 - y2) / 2 - this.config.node.default.r + y3);
+            this.translate(
+                parentNode,
+                0,
+                (y1 - y2) / 2 - this.config.node.default.r + y3
+            );
         }
     };
 
-    LampMap.prototype.renderLines = function (parentNode, children) {
+    LampMap.prototype.renderLines = function(parentNode, children) {
         var i,
             child,
             node = this.paper.g(),
@@ -501,11 +532,19 @@
 
                 if (i === 0) {
                     //绘制父节点连线
-                    line = this.renderStartLine(parentNode, child, false, offsetX);
+                    line = this.renderStartLine(
+                        parentNode,
+                        child,
+                        false,
+                        offsetX
+                    );
                     node.add(line);
                 }
 
-                if ((i === 0 && children[i + 1]) || (!children[i + 1] && i !== 0)) {
+                if (
+                    (i === 0 && children[i + 1]) ||
+                    (!children[i + 1] && i !== 0)
+                ) {
                     //绘制到首、尾节点的折线
                     line = this.renderBrokenLine(parentNode, child, true);
                     node.add(line);
@@ -520,47 +559,61 @@
         }
 
         return node.attr({
-            'class': this.config.className.lines
+            class: this.config.className.lines
         });
     };
 
-    LampMap.prototype.translate = function (node, dx, dy) {
+    LampMap.prototype.translate = function(node, dx, dy) {
         var m;
         m = new Snap.Matrix();
         m.translate(dx, dy);
         node.transform(m);
     };
 
-    LampMap.prototype.findMainNode = function (node) {
-        return node.hasClass(this.config.className.node) ? node : node.select('.' + this.config.className.node);
+    LampMap.prototype.findMainNode = function(node) {
+        return node.hasClass(this.config.className.node)
+            ? node
+            : node.select('.' + this.config.className.node);
     };
 
-    LampMap.prototype.getMainNodeBBox = function (node) {
+    LampMap.prototype.getMainNodeBBox = function(node) {
         node = this.findMainNode(node);
         return node.getBBox();
     };
 
-    LampMap.prototype.renderContent = function (x, y, id, text, state) {
+    LampMap.prototype.renderContent = function(x, y, id, text, state) {
         var circleEl,
             textEl,
             attr,
-            f = this.paper.filter(Snap.filter.shadow(2, -2, .3)),
+            f = this.paper.filter(Snap.filter.shadow(2, -2, 0.3)),
             node;
 
         state = this.config.fieldMap[state];
 
-        attr = $.extend({}, this.config.node.default, this.config.node[state] || {});
-        circleEl = this.paper.circle(x, y, this.config.node.default.r).attr(attr);
+        attr = $.extend(
+            {},
+            this.config.node.default,
+            this.config.node[state] || {}
+        );
+        circleEl = this.paper
+            .circle(x, y, this.config.node.default.r)
+            .attr(attr);
 
-        attr = $.extend({}, this.config.text.default, this.config.text[state] , {
+        attr = $.extend({}, this.config.text.default, this.config.text[state], {
             // filter:f
         });
-        textEl = this.paper.text(x, y - 2 + this.config.text.default['font-size'] / 2 - 2, text).attr(attr);
+        textEl = this.paper
+            .text(
+                x,
+                y - 2 + this.config.text.default['font-size'] / 2 - 2,
+                text
+            )
+            .attr(attr);
 
         node = this.paper.g(circleEl, textEl).attr({
             id: id,
             cursor: 'pointer',
-            'class': this.config.className.text
+            class: this.config.className.text
         });
 
         this.nodeAnimate(node, state);
@@ -568,7 +621,7 @@
         return node;
     };
 
-    LampMap.prototype.renderNode = function (x, y, item) {
+    LampMap.prototype.renderNode = function(x, y, item) {
         var content,
             expandBgAttr = this.config.expand.default.background,
             id = item.id,
@@ -581,15 +634,19 @@
         if (!item.children || item.children.length === 0) {
             expand.attr({ opacity: 0 });
         }
-        x = x + expandBgAttr.width + this.config.offset.expandX + this.config.node.default.r;
+        x =
+            x +
+            expandBgAttr.width +
+            this.config.offset.expandX +
+            this.config.node.default.r;
         content = this.renderContent(x, y, id, text, state);
 
         g = this.paper.g(expand, content);
-        g.attr({ 'class': this.config.className.node });
+        g.attr({ class: this.config.className.node });
         return g;
     };
 
-    LampMap.prototype.renderPreposeNode = function (x, y, item) {
+    LampMap.prototype.renderPreposeNode = function(x, y, item) {
         var content,
             pointAttr = this.config.point.default,
             id = item.id,
@@ -600,15 +657,19 @@
 
         point = this.renderPointNode(x, y);
 
-        x = x + pointAttr.width + this.config.offset.pointX + this.config.node.default.r;
+        x =
+            x +
+            pointAttr.width +
+            this.config.offset.pointX +
+            this.config.node.default.r;
         content = this.renderContent(x, y, id, text, state);
 
         g = this.paper.g(point, content);
-        g.attr({ 'class': this.config.className.prepose });
+        g.attr({ class: this.config.className.prepose });
         return g;
     };
 
-    LampMap.prototype.renderPointNode = function (x, y) {
+    LampMap.prototype.renderPointNode = function(x, y) {
         var attr = this.config.point.default,
             r = this.config.node.default.r,
             offsetX = 20,
@@ -637,44 +698,55 @@
         x4 = x1 + offsetX / 2 - 2;
         x5 = x1 + attr.width;
 
-
         y4 = y1 + offsetY;
         y5 = y3 - offsetY;
 
-        path1 = ['M', x2, ' ', y1,
-            'L', x4, ' ', y4,
-            'Q', x1, ' ', y2, ',', x4, ' ', y5,
-            'L', x2, ' ', y3
+        path1 = [
+            'M',
+            x2,
+            ' ',
+            y1,
+            'L',
+            x4,
+            ' ',
+            y4,
+            'Q',
+            x1,
+            ' ',
+            y2,
+            ',',
+            x4,
+            ' ',
+            y5,
+            'L',
+            x2,
+            ' ',
+            y3
         ].join('');
         path1 = this.paper.path(path1).attr(attr);
 
-        path2 = ['M', x4, ' ', y4,
-            'L', x5, ' ', y4,
-        ].join('');
+        path2 = ['M', x4, ' ', y4, 'L', x5, ' ', y4].join('');
         path2 = this.paper.path(path2).attr(attr);
 
-        path3 = ['M', x4, ' ', y5,
-            'L', x5, ' ', y5,
-        ].join('');
+        path3 = ['M', x4, ' ', y5, 'L', x5, ' ', y5].join('');
         path3 = this.paper.path(path3).attr(attr);
 
         g = this.paper.g(path1, path2, path3);
-        g.attr({ 'class': this.config.className.point });
+        g.attr({ class: this.config.className.point });
         return g;
-
     };
 
-    LampMap.prototype.translateXNode = function (node, x) {
+    LampMap.prototype.translateXNode = function(node, x) {
         node.select('circle').attr('cx', x);
         node.select('text').attr('x', x);
     };
 
-    LampMap.prototype.translateYNode = function (node, y) {
+    LampMap.prototype.translateYNode = function(node, y) {
         node.select('circle').attr('cy', y);
         node.select('text').attr('y', y);
     };
 
-    LampMap.prototype.nodeAnimate = function (node, state) {
+    LampMap.prototype.nodeAnimate = function(node, state) {
         var config = this.config.node[state] || {};
         node = node.select('circle');
         if (config.light) {
@@ -682,7 +754,7 @@
         }
     };
 
-    LampMap.prototype.renderBrokenLine = function (fromNode, toNode, hasArrow) {
+    LampMap.prototype.renderBrokenLine = function(fromNode, toNode, hasArrow) {
         var fromBBox = fromNode.getBBox(),
             toBBox = toNode.getBBox(),
             offsetX = this.config.offset.lineX,
@@ -713,13 +785,29 @@
         offsetY2 = y3 - y2 > 0 ? offsetY2 : -offsetY2;
 
         path = [
-            'M', x2, ' ', y2,
-            'L', x3, ' ', y3 - offsetY2,
-            'Q', x3, ' ', y3, ' ', x3 + offsetX2, ' ', y3,
-            'L', x4, ' ', y4].join('');
+            'M',
+            x2,
+            ' ',
+            y2,
+            'L',
+            x3,
+            ' ',
+            y3 - offsetY2,
+            'Q',
+            x3,
+            ' ',
+            y3,
+            ' ',
+            x3 + offsetX2,
+            ' ',
+            y3,
+            'L',
+            x4,
+            ' ',
+            y4
+        ].join('');
 
-        path = this.paper.path(path)
-            .attr(this.config.line.default);
+        path = this.paper.path(path).attr(this.config.line.default);
 
         if (hasArrow) {
             $(path.node).attr('marker-end', 'url(#arrow)');
@@ -728,7 +816,12 @@
         return path;
     };
 
-    LampMap.prototype.renderStartLine = function (fromNode, toNode, hasArrow, spaceX) {
+    LampMap.prototype.renderStartLine = function(
+        fromNode,
+        toNode,
+        hasArrow,
+        spaceX
+    ) {
         var fromBBox = fromNode.getBBox(),
             toBBox = toNode.getBBox(),
             offsetX = this.config.offset.lineX,
@@ -744,11 +837,9 @@
         x2 = x1 + (toBBox.x - x1 - offsetX) / 2;
         y2 = y1;
 
-        path = ['M', x1, ' ', y1,
-            'L', x2 - spaceX, ' ', y2].join('');
+        path = ['M', x1, ' ', y1, 'L', x2 - spaceX, ' ', y2].join('');
 
-        path = this.paper.path(path)
-            .attr(this.config.line.default);
+        path = this.paper.path(path).attr(this.config.line.default);
 
         if (hasArrow) {
             $(path.node).attr('marker-end', 'url(#arrow)');
@@ -757,7 +848,12 @@
         return path;
     };
 
-    LampMap.prototype.renderEndLine = function (fromNode, toNode, hasArrow, spaceX) {
+    LampMap.prototype.renderEndLine = function(
+        fromNode,
+        toNode,
+        hasArrow,
+        spaceX
+    ) {
         var fromBBox = fromNode.getBBox(),
             toBBox = toNode.getBBox(),
             offsetX = this.config.offset.lineX,
@@ -779,13 +875,9 @@
         x4 = toBBox.x - offsetX;
         y4 = y3;
 
-        path = [
-            'M', x3 + spaceX, ' ', y3,
-            'L', x4, ' ', y4].join('');
+        path = ['M', x3 + spaceX, ' ', y3, 'L', x4, ' ', y4].join('');
 
-
-        path = this.paper.path(path)
-            .attr(this.config.line.default);
+        path = this.paper.path(path).attr(this.config.line.default);
 
         if (hasArrow) {
             $(path.node).attr('marker-end', 'url(#arrow)');
@@ -794,7 +886,7 @@
         return path;
     };
 
-    LampMap.prototype.renderExpand = function (x, y, id, expand) {
+    LampMap.prototype.renderExpand = function(x, y, id, expand) {
         var backgroundAttr,
             frontgoundAttr,
             rect,
@@ -816,19 +908,61 @@
         x1 = x;
         y1 = y - backgroundAttr.height / 2;
 
-        rect = this.paper.rect(x1, y1, backgroundAttr.width, backgroundAttr.height, backgroundAttr.r).attr(backgroundAttr);
+        rect = this.paper
+            .rect(
+                x1,
+                y1,
+                backgroundAttr.width,
+                backgroundAttr.height,
+                backgroundAttr.r
+            )
+            .attr(backgroundAttr);
         //框
-        path1 = this.paper.path([
-            'M', x1 + innerOffset, ' ', y1 + innerOffset - offsetY, 'h', innerWidth, ' ', 'v', innerWidth, ' ', 'h', -innerWidth, 'z',
-        ].join('')).attr(frontgoundAttr);
+        path1 = this.paper
+            .path(
+                [
+                    'M',
+                    x1 + innerOffset,
+                    ' ',
+                    y1 + innerOffset - offsetY,
+                    'h',
+                    innerWidth,
+                    ' ',
+                    'v',
+                    innerWidth,
+                    ' ',
+                    'h',
+                    -innerWidth,
+                    'z'
+                ].join('')
+            )
+            .attr(frontgoundAttr);
         //横
-        path2 = this.paper.path([
-            'M', x1 + innerOffset * 1.5, ' ', y1 + backgroundAttr.height / 2 - offsetY, 'h', innerWidth - innerOffset
-        ].join('')).attr(frontgoundAttr);
+        path2 = this.paper
+            .path(
+                [
+                    'M',
+                    x1 + innerOffset * 1.5,
+                    ' ',
+                    y1 + backgroundAttr.height / 2 - offsetY,
+                    'h',
+                    innerWidth - innerOffset
+                ].join('')
+            )
+            .attr(frontgoundAttr);
         //竖
-        path3 = this.paper.path([
-            'M', x1 + backgroundAttr.width / 2, ' ', y1 + innerOffset * 1.5- offsetY, 'v', innerWidth - innerOffset,
-        ].join('')).attr(frontgoundAttr);
+        path3 = this.paper
+            .path(
+                [
+                    'M',
+                    x1 + backgroundAttr.width / 2,
+                    ' ',
+                    y1 + innerOffset * 1.5 - offsetY,
+                    'v',
+                    innerWidth - innerOffset
+                ].join('')
+            )
+            .attr(frontgoundAttr);
 
         if (expand) {
             path3.attr({ opacity: 0 });
@@ -837,13 +971,13 @@
             id: id,
             cursor: 'pointer',
             'data-expand': expand,
-            'class': this.config.className.expand
+            class: this.config.className.expand
         });
 
         return node;
     };
 
-    LampMap.prototype.changeExpand = function (node) {
+    LampMap.prototype.changeExpand = function(node) {
         var id = node.attr('id'),
             expand = node.attr('data-expand') === 'true' ? false : true,
             item = this.hash[id],
@@ -857,8 +991,7 @@
         node.attr('data-expand', expand);
         if (expand) {
             node.attr(this.config.node.open);
-        }
-        else {
+        } else {
             node.attr(this.config.node.close);
         }
 
@@ -866,47 +999,45 @@
         this.render();
     };
 
-    LampMap.prototype.bindNodeEvent = function (node, item) {
+    LampMap.prototype.bindNodeEvent = function(node, item) {
         var self = this;
-        node.click(function (e) {
+        node.click(function(e) {
             if (self.clickType === null) {
                 self.clickType = 'click';
-                setTimeout(function () {
+                setTimeout(function() {
                     var type = self.clickType;
                     self.clickType = null;
 
                     if (type === 'click') {
                         self.bindNodeClick(e, node, item);
-                    }
-                    else {
+                    } else {
                         self.bindNodeDbClick(e, node, item);
                     }
-
                 }, 250);
             } else if (self.clickType === 'click') {
                 self.clickType = 'dbclick';
             }
         });
 
-        node.select('.' + this.config.className.expand).click(function (e) {
+        node.select('.' + this.config.className.expand).click(function(e) {
             self.bindExpandClick(e, this, item);
         });
     };
 
-    LampMap.prototype.bindNodeClick = function (e, node, item) {
+    LampMap.prototype.bindNodeClick = function(e, node, item) {
         this.config.event.click.call(node, e, item);
     };
 
-    LampMap.prototype.bindNodeDbClick = function (e, node, item) {
+    LampMap.prototype.bindNodeDbClick = function(e, node, item) {
         this.config.event.dbclick.call(node, e, item);
     };
 
-    LampMap.prototype.bindExpandClick = function (e, node, item) {
+    LampMap.prototype.bindExpandClick = function(e, node, item) {
         this.config.event.expand.call(node, e, item);
         this.changeExpand(node);
     };
 
-    LampMap.prototype.flashLight = function (node, state, light) {
+    LampMap.prototype.flashLight = function(node, state, light) {
         var self = this,
             from = this.config.node[state] || {},
             to = this.config.node[state + '-light'] || {},
@@ -920,12 +1051,12 @@
             fill: attr.fill,
             filter: attr.filter
         });
-        node.animate({}, 1000, null, function () {
+        node.animate({}, 1000, null, function() {
             self.flashLight(node, state, !light);
         });
     };
 
-    LampMap.prototype.resize = function () {
+    LampMap.prototype.resize = function() {
         var bbox,
             offset = 10,
             r = this.config.node.default.r;
@@ -939,5 +1070,4 @@
     };
 
     window.LampMap = LampMap;
-
-}(jQuery, Snap, window, console));
+})(jQuery, Snap, window, console);
